@@ -1,30 +1,43 @@
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { useQuotesStore } from '../stores/quotes';
-import { useSettingsStore } from '../stores/settings';
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useQuotesStore } from '../stores/quotes'
+import { useSettingsStore } from '../stores/settings'
 
-const router = useRouter();
-const quotesStore = useQuotesStore();
-const settingsStore = useSettingsStore();
+const router = useRouter()
+const quotesStore = useQuotesStore()
+const settingsStore = useSettingsStore()
 
-const quoteText = ref('');
-const author = ref('');
+const quoteText = ref('')
 
 const handleSubmit = (e) => {
-  e.preventDefault();
+  e.preventDefault()
   
-  if (!quoteText.value.trim() || !author.value.trim()) return;
+  const text = quoteText.value.trim()
+  if (!text) return
   
-  const newQuote = quotesStore.addQuote(quoteText.value.trim(), author.value.trim());
+  const lines = text.split('\n')
+  const lastLine = lines[lines.length - 1].trim()
+  
+  let quoteTextFinal = text
+  let authorName = ''
+  
+  // Extract author from the last line if it starts with a hyphen
+  if (lastLine.startsWith('-') && lastLine.length > 2) {
+    authorName = lastLine.substring(1).trim()
+    // Remove the author line from the quote text
+    lines.pop()
+    quoteTextFinal = lines.join('\n').trim()
+  }
+  
+  const newQuote = quotesStore.addQuote(quoteTextFinal, authorName)
   
   // Reset form
-  quoteText.value = '';
-  author.value = '';
+  quoteText.value = ''
   
   // Navigate to the new quote
-  router.push(`/quote/${newQuote.slug}`);
-};
+  router.push(`/quote/${newQuote.slug}`)
+}
 </script>
 
 <template>

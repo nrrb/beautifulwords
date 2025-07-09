@@ -1,6 +1,6 @@
-import { createRouter, createWebHistory } from 'vue-router';
-import HomeView from '../views/HomeView.vue';
-import QuoteView from '../views/QuoteView.vue';
+import { createRouter, createWebHistory } from 'vue-router'
+import HomeView from '../views/HomeView.vue'
+import QuoteView from '../views/QuoteView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -24,8 +24,8 @@ const router = createRouter({
   ],
   scrollBehavior(to, from, savedPosition) {
     // Always scroll to top when navigating to a new route
-    return { top: 0 };
+    return { top: 0 }
   }
-});
+})
 
-export default router;
+export default router

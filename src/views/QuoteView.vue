@@ -1,121 +1,121 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useQuotesStore } from '../stores/quotes';
-import { useSettingsStore } from '../stores/settings';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useQuotesStore } from '../stores/quotes'
+import { useSettingsStore } from '../stores/settings'
 
-const route = useRoute();
-const router = useRouter();
-const quotesStore = useQuotesStore();
-const settingsStore = useSettingsStore();
+const route = useRoute()
+const router = useRouter()
+const quotesStore = useQuotesStore()
+const settingsStore = useSettingsStore()
 
-const currentQuote = ref(null);
-const touchStartX = ref(0);
-const touchEndX = ref(0);
+const currentQuote = ref(null)
+const touchStartX = ref(0)
+const touchEndX = ref(0)
 
 // Load the current quote based on the slug in the URL
 const loadQuote = () => {
-  const slug = route.params.slug;
-  const quote = quotesStore.getQuoteBySlug(slug);
+  const slug = route.params.slug
+  const quote = quotesStore.getQuoteBySlug(slug)
   
   if (!quote) {
     // If quote not found, redirect to home
-    router.push('/');
-    return;
+    router.push('/')
+    return
   }
   
-  currentQuote.value = quote;
-};
+  currentQuote.value = quote
+}
 
 // Navigate to the next or previous quote
 const navigateToQuote = (direction) => {
-  if (!currentQuote.value) return;
+  if (!currentQuote.value) return
   
-  let targetQuote = null;
+  let targetQuote = null
   
   if (direction === 'next') {
-    targetQuote = quotesStore.getNextQuote(currentQuote.value.id);
+    targetQuote = quotesStore.getNextQuote(currentQuote.value.id)
   } else if (direction === 'prev') {
-    targetQuote = quotesStore.getPreviousQuote(currentQuote.value.id);
+    targetQuote = quotesStore.getPreviousQuote(currentQuote.value.id)
   }
   
   if (targetQuote) {
-    router.push(`/quote/${targetQuote.slug}`);
+    router.push(`/quote/${targetQuote.slug}`)
   }
-};
+}
 
 // Handle touch events for swipe navigation
 const handleTouchStart = (e) => {
-  touchStartX.value = e.changedTouches[0].screenX;
-};
+  touchStartX.value = e.changedTouches[0].screenX
+}
 
 const handleTouchEnd = (e) => {
-  touchEndX.value = e.changedTouches[0].screenX;
-  handleSwipe();
-};
+  touchEndX.value = e.changedTouches[0].screenX
+  handleSwipe()
+}
 
 const handleSwipe = () => {
-  const diff = touchStartX.value - touchEndX.value;
-  const swipeThreshold = 50; // Minimum distance to trigger navigation
+  const diff = touchStartX.value - touchEndX.value
+  const swipeThreshold = 50 // Minimum distance to trigger navigation
   
   if (diff > swipeThreshold) {
     // Swipe left - go to next quote
-    navigateToQuote('next');
+    navigateToQuote('next')
   } else if (diff < -swipeThreshold) {
     // Swipe right - go to previous quote
-    navigateToQuote('prev');
+    navigateToQuote('prev')
   }
-};
+}
 
 // Handle click on left/right sides of the screen
 const handleScreenClick = (e) => {
-  if (!currentQuote.value) return;
+  if (!currentQuote.value) return
   
-  const screenWidth = window.innerWidth;
-  const clickX = e.clientX;
-  const thirdOfScreen = screenWidth / 3;
+  const screenWidth = window.innerWidth
+  const clickX = e.clientX
+  const thirdOfScreen = screenWidth / 3
   
   if (clickX < thirdOfScreen) {
     // Clicked on left third - go to previous quote
-    navigateToQuote('prev');
+    navigateToQuote('prev')
   } else if (clickX > screenWidth - thirdOfScreen) {
     // Clicked on right third - go to next quote
-    navigateToQuote('next');
+    navigateToQuote('next')
   }
-};
+}
 
 // Handle keyboard navigation
 const handleKeyDown = (e) => {
   if (e.key === 'ArrowLeft') {
-    navigateToQuote('prev');
+    navigateToQuote('prev')
   } else if (e.key === 'ArrowRight') {
-    navigateToQuote('next');
+    navigateToQuote('next')
   } else if (e.key === 'Escape') {
-    router.push('/');
+    router.push('/')
   }
-};
+}
 
 // Set up event listeners
 onMounted(() => {
-  loadQuote();
-  window.addEventListener('keydown', handleKeyDown);
-  document.addEventListener('click', handleScreenClick);
-  document.addEventListener('touchstart', handleTouchStart, { passive: true });
-  document.addEventListener('touchend', handleTouchEnd, { passive: true });
-});
+  loadQuote()
+  window.addEventListener('keydown', handleKeyDown)
+  document.addEventListener('click', handleScreenClick)
+  document.addEventListener('touchstart', handleTouchStart, { passive: true })
+  document.addEventListener('touchend', handleTouchEnd, { passive: true })
+})
 
 // Clean up event listeners
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeyDown);
-  document.removeEventListener('click', handleScreenClick);
-  document.removeEventListener('touchstart', handleTouchStart);
-  document.removeEventListener('touchend', handleTouchEnd);
-});
+  window.removeEventListener('keydown', handleKeyDown)
+  document.removeEventListener('click', handleScreenClick)
+  document.removeEventListener('touchstart', handleTouchStart)
+  document.removeEventListener('touchend', handleTouchEnd)
+})
 
 // Watch for route changes to update the quote
 watch(() => route.params.slug, () => {
-  loadQuote();
-});
+  loadQuote()
+})
 </script>
 
 <template>

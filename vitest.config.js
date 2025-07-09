@@ -1,5 +1,5 @@
-import { defineConfig } from 'vitest/config';
-import vue from '@vitejs/plugin-vue';
+import { defineConfig } from 'vitest/config'
+import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
   plugins: [vue()],
@@ -9,7 +9,7 @@ export default defineConfig({
     setupFiles: ['./src/__tests__/setup.js'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-    },
-  },
-});
+      reporter: ['text', 'json', 'html']
+    }
+  }
+})

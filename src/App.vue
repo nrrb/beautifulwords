@@ -1,27 +1,27 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useSettingsStore } from './stores/settings';
-import { useQuotesStore } from './stores/quotes';
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useSettingsStore } from './stores/settings'
+import { useQuotesStore } from './stores/quotes'
 
-const router = useRouter();
-const settingsStore = useSettingsStore();
-const quotesStore = useQuotesStore();
+const router = useRouter()
+const settingsStore = useSettingsStore()
+const quotesStore = useQuotesStore()
 
-const showMenu = ref(false);
+const showMenu = ref(false)
 
 const toggleMenu = () => {
-  showMenu.value = !showMenu.value;
-};
+  showMenu.value = !showMenu.value
+}
 
 const closeMenu = () => {
-  showMenu.value = false;
-};
+  showMenu.value = false
+}
 
 const resetSettings = () => {
-  settingsStore.resetSettings();
-  closeMenu();
-};
+  settingsStore.resetSettings()
+  closeMenu()
+}
 
 // Handle keyboard navigation
 const handleKeyDown = (e) => {
@@ -30,18 +30,18 @@ const handleKeyDown = (e) => {
   } else if (e.key === 'ArrowRight') {
     // Navigate to next quote
   } else if (e.key === 'Escape') {
-    closeMenu();
+    closeMenu()
   }
-};
+}
 
 // Add event listeners
 onMounted(() => {
-  window.addEventListener('keydown', handleKeyDown);
-});
+  window.addEventListener('keydown', handleKeyDown)
+})
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeyDown);
-});
+  window.removeEventListener('keydown', handleKeyDown)
+})
 </script>
 
 <template>
