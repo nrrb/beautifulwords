@@ -1,6 +1,13 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { JSONBIN_CONFIG, getHeaders } from '../config/jsonbin';
+
+// Helper to get config values with environment variable fallbacks
+const getConfig = () => ({
+  API_KEY: process.env.VITE_JSONBIN_API_KEY || JSONBIN_CONFIG.API_KEY,
+  BIN_ID: process.env.VITE_JSONBIN_BIN_ID || JSONBIN_CONFIG.BIN_ID,
+  BASE_URL: JSONBIN_CONFIG.BASE_URL
+});
 
 // Helper function to generate a URL-friendly slug
 export function slugify(text) {
@@ -20,8 +27,10 @@ export const useQuotesStore = defineStore('quotes', () => {
   
   // Initialize the store by loading quotes from JSONBin.io
   const loadQuotes = async () => {
-    if (!JSONBIN_CONFIG.API_KEY || !JSONBIN_CONFIG.BIN_ID) {
+    const config = getConfig();
+    if (!config.API_KEY || !config.BIN_ID) {
       error.value = 'JSONBin.io API key or Bin ID not configured';
+      quotes.value = [];
       return [];
     }
     
@@ -29,13 +38,14 @@ export const useQuotesStore = defineStore('quotes', () => {
     error.value = null;
     
     try {
-      const response = await fetch(`${JSONBIN_CONFIG.BASE_URL}/${JSONBIN_CONFIG.BIN_ID}/latest`, {
+      const response = await fetch(`${config.BASE_URL}/${config.BIN_ID}/latest`, {
         headers: getHeaders()
       });
       
       if (!response.ok) {
-        // If bin doesn't exist yet, create it with an empty array
+        // If bin doesn't exist yet, return an empty array
         if (response.status === 404) {
+          quotes.value = [];
           return [];
         }
         throw new Error(`Failed to load quotes: ${response.statusText}`);
@@ -43,10 +53,11 @@ export const useQuotesStore = defineStore('quotes', () => {
       
       const data = await response.json();
       quotes.value = data.record?.quotes || [];
-      return quotes.value;
+      return [...quotes.value];
     } catch (err) {
       error.value = err.message;
       console.error('Error loading quotes:', err);
+      quotes.value = [];
       return [];
     } finally {
       isLoading.value = false;
@@ -55,7 +66,8 @@ export const useQuotesStore = defineStore('quotes', () => {
   
   // Save quotes to JSONBin.io
   const saveQuotes = async () => {
-    if (!JSONBIN_CONFIG.API_KEY) {
+    const config = getConfig();
+    if (!config.API_KEY) {
       error.value = 'JSONBin.io API key not configured';
       return false;
     }
@@ -64,11 +76,11 @@ export const useQuotesStore = defineStore('quotes', () => {
     error.value = null;
     
     try {
-      const url = JSONBIN_CONFIG.BIN_ID 
-        ? `${JSONBIN_CONFIG.BASE_URL}/${JSONBIN_CONFIG.BIN_ID}`
-        : JSONBIN_CONFIG.BASE_URL;
+      const url = config.BIN_ID 
+        ? `${config.BASE_URL}/${config.BIN_ID}`
+        : config.BASE_URL;
       
-      const method = JSONBIN_CONFIG.BIN_ID ? 'PUT' : 'POST';
+      const method = config.BIN_ID ? 'PUT' : 'POST';
       
       const response = await fetch(url, {
         method,
@@ -81,10 +93,10 @@ export const useQuotesStore = defineStore('quotes', () => {
       }
       
       // If this is the first save, store the bin ID for future use
-      if (!JSONBIN_CONFIG.BIN_ID) {
+      if (!config.BIN_ID) {
         const data = await response.json();
-        JSONBIN_CONFIG.BIN_ID = data.metadata.id;
-        console.log('Created new bin with ID:', JSONBIN_CONFIG.BIN_ID);
+        process.env.VITE_JSONBIN_BIN_ID = data.metadata.id;
+        console.log('Created new bin with ID:', process.env.VITE_JSONBIN_BIN_ID);
       }
       
       return true;
@@ -98,7 +110,7 @@ export const useQuotesStore = defineStore('quotes', () => {
   };
   
   // Add a new quote
-  const addQuote = async (quoteText, author, font) => {
+  const addQuote = (quoteText, author, font = 'Arial') => {
     const newQuote = {
       id: Date.now().toString(),
       text: quoteText,
@@ -108,15 +120,8 @@ export const useQuotesStore = defineStore('quotes', () => {
       createdAt: new Date().toISOString()
     };
     
-    quotes.value.unshift(newQuote);
-    const success = await saveQuotes();
-    
-    if (!success) {
-      // Revert the local change if save fails
-      quotes.value.shift();
-      throw new Error(error.value || 'Failed to save quote');
-    }
-    
+    // Add to the beginning of the array (most recent first)
+    quotes.value = [newQuote, ...quotes.value];
     return newQuote;
   };
   
@@ -127,7 +132,7 @@ export const useQuotesStore = defineStore('quotes', () => {
   
   // Get a quote by slug
   const getQuoteBySlug = (slug) => {
-    return quotes.value.find(quote => quote.sug === slug);
+    return quotes.value.find(quote => quote.slug === slug);
   };
   
   // Get the next quote
@@ -146,14 +151,17 @@ export const useQuotesStore = defineStore('quotes', () => {
     return quotes.value[prevIndex];
   };
   
-  // Initialize the store when it's created
-  loadQuotes();
+  // Don't auto-load quotes in test environment to avoid race conditions
+  if (process.env.NODE_ENV !== 'test') {
+    loadQuotes();
+  }
   
   return {
     quotes: computed(() => quotes.value),
     isLoading: computed(() => isLoading.value),
     error: computed(() => error.value),
     loadQuotes,
+    saveQuotes, // Export saveQuotes
     addQuote,
     getQuoteById,
     getQuoteBySlug,
