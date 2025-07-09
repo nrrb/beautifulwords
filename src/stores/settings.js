@@ -18,9 +18,9 @@ export const useSettingsStore = defineStore('settings', () => {
 
   // Default settings
   const defaultSettings = {
-    fontFamily: '"Pinyon Script"',
-    fontSize: 24,
-    darkMode: false
+    fontFamily: '"Fleur De Leah"',
+    fontSize: 48,
+    darkMode: true
   };
 
   // Reactive state

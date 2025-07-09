@@ -72,7 +72,7 @@ onUnmounted(() => {
         
         <div class="setting-group">
           <label>Font Size</label>
-          <input type="range" v-model="settingsStore.fontSize" min="12" max="48" />
+          <input type="range" v-model="settingsStore.fontSize" min="24" max="192" />
           <span>{{ settingsStore.fontSize }}px</span>
         </div>
         

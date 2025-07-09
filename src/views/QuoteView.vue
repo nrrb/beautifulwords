@@ -168,7 +168,7 @@ watch(() => route.params.slug, () => {
 }
 
 .quote-text {
-  font-size: 2em;
+  font-size: 1em; /* Use the font size from settings */
   line-height: 1.6;
   margin-bottom: 1.5rem;
   font-weight: 400;
@@ -178,7 +178,7 @@ watch(() => route.params.slug, () => {
 
 .quote-text::before {
   content: open-quote;
-  font-size: 4em;
+  font-size: 3em; /* Slightly smaller quote marks */
   position: absolute;
   left: -0.5em;
   top: -0.2em;
@@ -187,7 +187,7 @@ watch(() => route.params.slug, () => {
 }
 
 .quote-author {
-  font-size: 0.8em;
+  font-size: 0.6em; /* Slightly smaller than the quote text */
   font-style: italic;
   opacity: 0.8;
   margin-top: 2rem;

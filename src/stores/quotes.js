@@ -4,8 +4,8 @@ import { JSONBIN_CONFIG, getHeaders } from '../config/jsonbin';
 
 // Helper to get config values with environment variable fallbacks
 const getConfig = () => ({
-  API_KEY: process.env.VITE_JSONBIN_API_KEY || JSONBIN_CONFIG.API_KEY,
-  BIN_ID: process.env.VITE_JSONBIN_BIN_ID || JSONBIN_CONFIG.BIN_ID,
+  API_KEY: import.meta.env.VITE_JSONBIN_API_KEY || JSONBIN_CONFIG.API_KEY,
+  BIN_ID: import.meta.env.VITE_JSONBIN_BIN_ID || JSONBIN_CONFIG.BIN_ID,
   BASE_URL: JSONBIN_CONFIG.BASE_URL
 });
 
@@ -95,8 +95,8 @@ export const useQuotesStore = defineStore('quotes', () => {
       // If this is the first save, store the bin ID for future use
       if (!config.BIN_ID) {
         const data = await response.json();
-        process.env.VITE_JSONBIN_BIN_ID = data.metadata.id;
-        console.log('Created new bin with ID:', process.env.VITE_JSONBIN_BIN_ID);
+        import.meta.env.VITE_JSONBIN_BIN_ID = data.metadata.id;
+        console.log('Created new bin with ID:', import.meta.env.VITE_JSONBIN_BIN_ID);
       }
       
       return true;
@@ -152,7 +152,7 @@ export const useQuotesStore = defineStore('quotes', () => {
   };
   
   // Don't auto-load quotes in test environment to avoid race conditions
-  if (process.env.NODE_ENV !== 'test') {
+  if (import.meta.env.MODE !== 'test') {
     loadQuotes();
   }
   
@@ -161,7 +161,7 @@ export const useQuotesStore = defineStore('quotes', () => {
     isLoading: computed(() => isLoading.value),
     error: computed(() => error.value),
     loadQuotes,
-    saveQuotes, // Export saveQuotes
+    saveQuotes,
     addQuote,
     getQuoteById,
     getQuoteBySlug,
