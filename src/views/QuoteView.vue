@@ -1,8 +1,45 @@
+<template>
+  <div 
+    class="quote-view"
+    :style="{
+      fontFamily: currentQuote?.font || settingsStore.fontFamily,
+      fontSize: `${currentQuote?.size || settingsStore.fontSize}px`
+    }"
+  >
+    <div class="quote-container">
+      <div class="quote-text" v-if="currentQuote">
+        {{ currentQuote.text }}
+      </div>
+      <div class="quote-author" v-if="currentQuote?.author">
+        {{ currentQuote.author }}
+      </div>
+      
+      <!-- Navigation indicators -->
+      <div class="nav-indicators">
+        <button class="nav-arrow left" @click="navigateToQuote('prev')">
+          &larr;
+        </button>
+        <button class="nav-arrow right" @click="navigateToQuote('next')">
+          &rarr;
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <HomeButton class="home-button" />
+</template>
+
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuotesStore } from '../stores/quotes'
 import { useSettingsStore } from '../stores/settings'
+import HomeButton from '../components/HomeButton.vue'
+
+// Accept slug as a prop to avoid extraneous non-props attributes warning
+const props = defineProps({
+  slug: String
+})
 
 const route = useRoute()
 const router = useRouter()
@@ -13,20 +50,6 @@ const currentQuote = ref(null)
 const touchStartX = ref(0)
 const touchEndX = ref(0)
 
-// Load the current quote based on the slug in the URL
-const loadQuote = () => {
-  const slug = route.params.slug
-  const quote = quotesStore.getQuoteBySlug(slug)
-  
-  if (!quote) {
-    // If quote not found, redirect to home
-    router.push('/')
-    return
-  }
-  
-  currentQuote.value = quote
-}
-
 // Navigate to the next or previous quote
 const navigateToQuote = (direction) => {
   if (!currentQuote.value) return
@@ -34,12 +57,21 @@ const navigateToQuote = (direction) => {
   let targetQuote = null
   
   if (direction === 'next') {
+    if (import.meta.DEV) {
+      console.log('navigateToQuote next', currentQuote.value.id);
+    }
     targetQuote = quotesStore.getNextQuote(currentQuote.value.id)
   } else if (direction === 'prev') {
+    if (import.meta.DEV) {
+      console.log('navigateToQuote prev', currentQuote.value.id);
+    }
     targetQuote = quotesStore.getPreviousQuote(currentQuote.value.id)
   }
   
   if (targetQuote) {
+    if (import.meta.DEV) {
+      console.log('navigateToQuote targetQuote', targetQuote);
+    }
     router.push(`/quote/${targetQuote.slug}`)
   }
 }
@@ -67,23 +99,6 @@ const handleSwipe = () => {
   }
 }
 
-// Handle click on left/right sides of the screen
-const handleScreenClick = (e) => {
-  if (!currentQuote.value) return
-  
-  const screenWidth = window.innerWidth
-  const clickX = e.clientX
-  const thirdOfScreen = screenWidth / 3
-  
-  if (clickX < thirdOfScreen) {
-    // Clicked on left third - go to previous quote
-    navigateToQuote('prev')
-  } else if (clickX > screenWidth - thirdOfScreen) {
-    // Clicked on right third - go to next quote
-    navigateToQuote('next')
-  }
-}
-
 // Handle keyboard navigation
 const handleKeyDown = (e) => {
   if (e.key === 'ArrowLeft') {
@@ -95,11 +110,26 @@ const handleKeyDown = (e) => {
   }
 }
 
+const isLoading = computed(() => quotesStore.isLoading)
+
+// Watch for route changes and loading state to update the quote
+watch(
+  [() => route.params.slug, isLoading],
+  ([slug, loading]) => {
+    if (loading) return // Wait until quotes are loaded
+    const quote = quotesStore.getQuoteBySlug(slug)
+    if (!quote) {
+      router.push('/')
+      return
+    }
+    currentQuote.value = quote
+  },
+  { immediate: true }
+)
+
 // Set up event listeners
 onMounted(() => {
-  loadQuote()
   window.addEventListener('keydown', handleKeyDown)
-  document.addEventListener('click', handleScreenClick)
   document.addEventListener('touchstart', handleTouchStart, { passive: true })
   document.addEventListener('touchend', handleTouchEnd, { passive: true })
 })
@@ -107,47 +137,18 @@ onMounted(() => {
 // Clean up event listeners
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeyDown)
-  document.removeEventListener('click', handleScreenClick)
   document.removeEventListener('touchstart', handleTouchStart)
   document.removeEventListener('touchend', handleTouchEnd)
 })
-
-// Watch for route changes to update the quote
-watch(() => route.params.slug, () => {
-  loadQuote()
-})
 </script>
 
-<template>
-  <div 
-    class="quote-view"
-    :style="{
-      fontFamily: settingsStore.fontFamily,
-      fontSize: `${settingsStore.fontSize}px`
-    }"
-  >
-    <div class="quote-container">
-      <div class="quote-text" v-if="currentQuote">
-        {{ currentQuote.text }}
-      </div>
-      <div class="quote-author" v-if="currentQuote">
-        {{ currentQuote.author }}
-      </div>
-      
-      <!-- Navigation indicators -->
-      <div class="nav-indicators">
-        <button class="nav-arrow left" @click="navigateToQuote('prev')">
-          &larr;
-        </button>
-        <button class="nav-arrow right" @click="navigateToQuote('next')">
-          &rarr;
-        </button>
-      </div>
-    </div>
-  </div>
-</template>
-
 <style scoped>
+.home-button {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+}
+
 .quote-view {
   display: flex;
   justify-content: center;
@@ -173,17 +174,6 @@ watch(() => route.params.slug, () => {
   margin-bottom: 1.5rem;
   font-weight: 400;
   position: relative;
-  quotes: '\201C' '\201D';
-}
-
-.quote-text::before {
-  content: open-quote;
-  font-size: 3em; /* Slightly smaller quote marks */
-  position: absolute;
-  left: -0.5em;
-  top: -0.2em;
-  opacity: 0.2;
-  line-height: 1;
 }
 
 .quote-author {
@@ -261,26 +251,6 @@ watch(() => route.params.slug, () => {
 
 .nav-arrow.right {
   right: 1rem;
-}
-
-/* Clickable areas for navigation */
-.quote-view::before,
-.quote-view::after {
-  content: '';
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  width: 33.33%;
-  z-index: 5;
-  cursor: pointer;
-}
-
-.quote-view::before {
-  left: 0;
-}
-
-.quote-view::after {
-  right: 0;
 }
 
 /* Responsive adjustments */

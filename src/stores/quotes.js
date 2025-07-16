@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
 import { JSONBIN_CONFIG, getHeaders } from '../config/jsonbin';
+import { useSettingsStore } from './settings';
 
 // Helper to get config values with environment variable fallbacks
 const getConfig = () => ({
@@ -110,18 +111,21 @@ export const useQuotesStore = defineStore('quotes', () => {
   };
   
   // Add a new quote
-  const addQuote = (quoteText, author, font = 'Arial') => {
+  const addQuote = (quoteText, author, font, size) => {
+    const settingsStore = useSettingsStore(); // moved here
     const newQuote = {
       id: Date.now().toString(),
       text: quoteText,
       author,
-      font,
+      font: font || settingsStore.fontFamily,
+      size: size || settingsStore.fontSize,
       slug: slugify(`${quoteText} ${author}`).slice(0, 50), // Limit slug length
       createdAt: new Date().toISOString()
     };
     
     // Add to the beginning of the array (most recent first)
     quotes.value = [newQuote, ...quotes.value];
+    saveQuotes();
     return newQuote;
   };
   
@@ -138,6 +142,9 @@ export const useQuotesStore = defineStore('quotes', () => {
   // Get the next quote
   const getNextQuote = (currentId) => {
     const currentIndex = quotes.value.findIndex(quote => quote.id === currentId);
+    if (import.meta.env.DEV) {
+      console.log('getNextQuote currentIndex', currentIndex);
+    }
     if (currentIndex === -1) return null;
     const nextIndex = (currentIndex + 1) % quotes.value.length;
     return quotes.value[nextIndex];
@@ -146,6 +153,9 @@ export const useQuotesStore = defineStore('quotes', () => {
   // Get the previous quote
   const getPreviousQuote = (currentId) => {
     const currentIndex = quotes.value.findIndex(quote => quote.id === currentId);
+    if (import.meta.env.DEV) {
+      console.log('getPreviousQuote currentIndex', currentIndex);
+    }
     if (currentIndex === -1) return null;
     const prevIndex = (currentIndex - 1 + quotes.value.length) % quotes.value.length;
     return quotes.value[prevIndex];

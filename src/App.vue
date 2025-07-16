@@ -90,14 +90,6 @@ onUnmounted(() => {
 </template>
 
 <style>
-:root {
-  --bg-light: #f5f5dc; /* Light cream */
-  --text-light: #333333; /* Dark gray */
-  --bg-dark: #1a1a1a;
-  --text-dark: #f0f0f0;
-  --accent: #8b7355; /* Muted gold/brown */
-}
-
 * {
   margin: 0;
   padding: 0;

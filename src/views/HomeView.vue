@@ -30,7 +30,7 @@ const handleSubmit = (e) => {
     quoteTextFinal = lines.join('\n').trim()
   }
   
-  const newQuote = quotesStore.addQuote(quoteTextFinal, authorName)
+  const newQuote = quotesStore.addQuote(quoteTextFinal, authorName, settingsStore.fontFamily, settingsStore.fontSize)
   
   // Reset form
   quoteText.value = ''
@@ -109,7 +109,7 @@ const handleSubmit = (e) => {
 }
 
 .submit-button {
-  background-color: rgba(139, 115, 85, 0.1);
+  background-color: black;
   color: var(--text-light);
   border: 2px solid var(--accent);
   padding: 0.75rem 2rem;
@@ -123,7 +123,7 @@ const handleSubmit = (e) => {
 
 .dark-mode .submit-button {
   color: var(--text-dark);
-  background-color: rgba(139, 115, 85, 0.2);
+  background-color: black;
 }
 
 .submit-button:hover {
