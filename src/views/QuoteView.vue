@@ -57,21 +57,12 @@ const navigateToQuote = (direction) => {
   let targetQuote = null
   
   if (direction === 'next') {
-    if (import.meta.DEV) {
-      console.log('navigateToQuote next', currentQuote.value.id);
-    }
     targetQuote = quotesStore.getNextQuote(currentQuote.value.id)
   } else if (direction === 'prev') {
-    if (import.meta.DEV) {
-      console.log('navigateToQuote prev', currentQuote.value.id);
-    }
     targetQuote = quotesStore.getPreviousQuote(currentQuote.value.id)
   }
   
   if (targetQuote) {
-    if (import.meta.DEV) {
-      console.log('navigateToQuote targetQuote', targetQuote);
-    }
     router.push(`/quote/${targetQuote.slug}`)
   }
 }

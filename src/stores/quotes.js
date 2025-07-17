@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
+import { generate } from 'random-words'
 import { JSONBIN_CONFIG, getHeaders } from '../config/jsonbin';
 import { useSettingsStore } from './settings';
 
@@ -119,7 +120,7 @@ export const useQuotesStore = defineStore('quotes', () => {
       author,
       font: font || settingsStore.fontFamily,
       size: size || settingsStore.fontSize,
-      slug: slugify(`${quoteText} ${author}`).slice(0, 50), // Limit slug length
+      slug: slugify(`${generate({ minLength: 4, maxLength: 10 })} ${quoteText} ${author}`).slice(0, 50), // Limit slug length
       createdAt: new Date().toISOString()
     };
     
@@ -142,9 +143,6 @@ export const useQuotesStore = defineStore('quotes', () => {
   // Get the next quote
   const getNextQuote = (currentId) => {
     const currentIndex = quotes.value.findIndex(quote => quote.id === currentId);
-    if (import.meta.env.DEV) {
-      console.log('getNextQuote currentIndex', currentIndex);
-    }
     if (currentIndex === -1) return null;
     const nextIndex = (currentIndex + 1) % quotes.value.length;
     return quotes.value[nextIndex];
@@ -153,9 +151,6 @@ export const useQuotesStore = defineStore('quotes', () => {
   // Get the previous quote
   const getPreviousQuote = (currentId) => {
     const currentIndex = quotes.value.findIndex(quote => quote.id === currentId);
-    if (import.meta.env.DEV) {
-      console.log('getPreviousQuote currentIndex', currentIndex);
-    }
     if (currentIndex === -1) return null;
     const prevIndex = (currentIndex - 1 + quotes.value.length) % quotes.value.length;
     return quotes.value[prevIndex];
