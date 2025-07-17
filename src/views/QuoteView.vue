@@ -26,7 +26,7 @@
     </div>
   </div>
 
-  <HomeButton class="home-button" />
+  <HomeButton class="home-button" />˜
 </template>
 
 <script setup>
@@ -148,7 +148,6 @@ onUnmounted(() => {
   padding: 2rem;
   text-align: center;
   cursor: default;
-  user-select: none;
   transition: all 0.3s ease;
 }
 
